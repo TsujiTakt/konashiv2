@@ -816,7 +816,7 @@ public class KonashiBaseManager implements BluetoothAdapter.LeScanCallback, OnBl
      * のRxからデータを受信した時
      * @param data 受信データ
      */
-    protected void onRecieveUart(byte data){
+    protected void onRecieveUart(byte data[]){
         notifyKonashiEvent(KonashiEvent.UART_RX_COMPLETE, data);
     }
     

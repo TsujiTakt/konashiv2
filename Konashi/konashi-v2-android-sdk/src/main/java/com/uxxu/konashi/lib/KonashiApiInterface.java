@@ -71,6 +71,8 @@ public interface KonashiApiInterface {
     public void uartMode(int mode);
     public void uartBaudrate(int baudrate);
     public void uartWrite(byte[] data);
+    public void uartReadRequest(int length);
+    public byte[] uartRead(int length);
     
     // Hardware
     public void reset();

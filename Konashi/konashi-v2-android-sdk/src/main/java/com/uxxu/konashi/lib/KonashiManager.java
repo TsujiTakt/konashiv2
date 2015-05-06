@@ -52,7 +52,8 @@ public class KonashiManager extends KonashiBaseManager implements KonashiApiInte
     // UART
     private byte mUartSetting;
     private byte mUartBaudrate;
-    private byte mUartRxData;
+    private int mUartReadDataLength;
+    private byte[] mUartReadData;
     
     // Hardware
     private int mBatteryLevel;
@@ -97,8 +98,10 @@ public class KonashiManager extends KonashiBaseManager implements KonashiApiInte
         // UART
         mUartSetting = 0;
         mUartBaudrate = 0;
-        mUartRxData = 0;
-            
+        for(i=0; i<Konashi.UART_DATA_MAX_LENGTH; i++){
+            mUartReadData[i] = 0;
+        }
+        mUartReadDataLength=0;
         // Hardware
         mBatteryLevel = 0;
         mRssi = 0;
@@ -579,8 +582,39 @@ public class KonashiManager extends KonashiBaseManager implements KonashiApiInte
         }
 
     }
-    
-    
+
+    @Override
+    public void uartReadRequest(int length) {
+        if(!isEnableAccessKonashi()){
+            notifyKonashiError(KonashiErrorReason.NOT_READY);
+            return;
+        }
+
+        if(length>0 && length<=Konashi.UART_DATA_MAX_LENGTH){
+            mUartReadDataLength = length;
+
+            byte[] val = {(byte)length};
+            addWriteMessage(KonashiUUID.UART_RX_NOTIFICATION_UUID,val);
+        } else {
+            notifyKonashiError(KonashiErrorReason.INVALID_PARAMETER);
+        }
+    }
+
+    @Override
+    public byte[] uartRead(int length) {
+        if(!isEnableAccessKonashi()){
+            notifyKonashiError(KonashiErrorReason.NOT_READY);
+            return null;
+        }
+
+        if(length>0 && length<=Konashi.UART_DATA_MAX_LENGTH && length==mUartReadDataLength){
+            return mUartReadData;
+        } else {
+            notifyKonashiError(KonashiErrorReason.INVALID_PARAMETER);
+            return null;
+        }
+    }
+
     ///////////////////////////
     // I2C
     ///////////////////////////
@@ -847,7 +881,7 @@ public class KonashiManager extends KonashiBaseManager implements KonashiApiInte
     }
 
     @Override
-    protected void onRecieveUart(byte data) {
+    protected void onRecieveUart(byte[] data) {
         mUartRxData = data;
         super.onRecieveUart(data);
     }
